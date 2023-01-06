@@ -115,7 +115,7 @@ fn submsg_overlay_chunk(
     is_cont: bool,
     duration: u8,
     text: &str,
-    is_previous_to_last: bool,
+    has_more: bool,
 ) -> [u8; 32] {
     let mut body = [0u8; 32];
     body[..7].clone_from_slice(&[
@@ -125,7 +125,7 @@ fn submsg_overlay_chunk(
         duration,
         0x00,
         (if text.len() <= 8 { text.len() * 2 } else { 16 }) as u8,
-        is_previous_to_last as u8,
+        has_more as u8,
     ]);
 
     let mut payload = text
@@ -140,7 +140,7 @@ fn submsg_overlay_chunk(
 fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
     assert!(text.len() <= 32);
     let mut res = Vec::new();
-    for (i, chunk, is_last_element) in text
+    for (i, chunk, has_more) in text
         .chars()
         .collect::<Vec<char>>()
         .chunks(8)
@@ -160,7 +160,7 @@ fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
             i != 0,
             duration,
             &chunk,
-            is_last_element,
+            i>0 && has_more,
         ))
     }
     res
@@ -306,4 +306,17 @@ mod tests_msgs {
             ]
         )
     }
+
+    #[test]
+    fn it_should_match_show_overlay_text__broken() {
+        let result = msgs_show_overlay_text(2, "Disco, disco!");
+        assert_eq!(
+            result,
+            vec![
+                [ 2, 177, 5, 2, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 105, 0, 115, 0, 99, 0, 111, 0, 44, 0, 32, 0, 100, 0 ],
+                [ 2, 177, 6, 2, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 105, 0, 115, 0, 99, 0, 111, 0, 33, 0, 0, 0, 0, 0, 0, 0 ],
+            ]
+        )
+    }
+
 }
