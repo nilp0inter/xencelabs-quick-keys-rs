@@ -34,12 +34,12 @@ mod tests_pad_zeroes {
 //
 
 // A message to subscribe to key events
-fn msg_subscribe_to_key_events() -> [u8; 32] {
+pub fn msg_subscribe_to_key_events() -> [u8; 32] {
     pad_zeroes([0x02, 0xb0, 0x04])
 }
 
 // A message to subscribe to battery changes
-fn msg_subscribe_to_battery() -> [u8; 32] {
+pub fn msg_subscribe_to_battery() -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x10])
 }
 
@@ -52,7 +52,7 @@ pub enum ScreenOrientation {
 }
 
 // A message to rotate the screen
-fn msg_rotate_screen(rot: ScreenOrientation) -> [u8; 32] {
+pub fn msg_rotate_screen(rot: ScreenOrientation) -> [u8; 32] {
     pad_zeroes([0x02, 0xb1, rot as u8])
 }
 
@@ -65,7 +65,7 @@ pub enum ScreenBrightness {
 }
 
 // A message to change the screen brightness level
-fn msg_set_screen_brightness(level: ScreenBrightness) -> [u8; 32] {
+pub fn msg_set_screen_brightness(level: ScreenBrightness) -> [u8; 32] {
     pad_zeroes([0x02, 0xb1, 0x0a, 0x01, level as u8])
 }
 
@@ -79,23 +79,23 @@ pub enum WheelSpeed {
 }
 
 // A message to change the wheel speed
-fn msg_set_wheel_speed(speed: WheelSpeed) -> [u8; 32] {
+pub fn msg_set_wheel_speed(speed: WheelSpeed) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x04, 0x01, 0x01, speed as u8])
 }
 
 // A message to set for how long the device would be awake (after losing connection)
-fn msg_set_sleep_timeout(minutes: u8) -> [u8; 32] {
+pub fn msg_set_sleep_timeout(minutes: u8) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x08, 0x01, minutes])
 }
 
 // A message to set the wheel outer ring led color
-fn msg_set_wheel_color(r: u8, g: u8, b: u8) -> [u8; 32] {
+pub fn msg_set_wheel_color(r: u8, g: u8, b: u8) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x01, 0x01, 0x00, 0x00, r, g, b])
 }
 
 // A message to set the text on a given key
 // TODO: investigate how to set text longer than 8 chars
-fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
+pub fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
     let mut body = [0u8; 32];
     body[..6].clone_from_slice(&[
         0x02,
@@ -139,7 +139,7 @@ fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool)
 
 // A message sequence to show a text overlay
 // TODO: consider unicode problems
-fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
+pub fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
     assert!(text.len() <= 32);
     let mut res = Vec::new();
     for (i, chunk, has_more) in text
@@ -342,16 +342,16 @@ pub enum WheelDirection {
 // The state of the buttons at any given moment (true => press, false => not press)
 #[derive(Debug, PartialEq)]
 pub struct ButtonState {
-    button_0: bool,
-    button_1: bool,
-    button_2: bool,
-    button_3: bool,
-    button_4: bool,
-    button_5: bool,
-    button_6: bool,
-    button_7: bool,
-    button_extra: bool,
-    button_wheel: bool,
+    pub button_0: bool,
+    pub button_1: bool,
+    pub button_2: bool,
+    pub button_3: bool,
+    pub button_4: bool,
+    pub button_5: bool,
+    pub button_6: bool,
+    pub button_7: bool,
+    pub button_extra: bool,
+    pub button_wheel: bool,
 }
 
 // Represent a state change of the device
@@ -360,12 +360,12 @@ pub enum Event {
     Button { state: ButtonState },
     Wheel { direction: WheelDirection },
     Battery { percent: u8 },
-    Unknown { data: [u8; 16] },
+    Unknown { data: [u8; 10] },
 }
 
 // Process an input message from the device and translates it to an Event
 // For messages that are malformed or not yet understood it returns Unknown
-fn process_input(data: &[u8; 16]) -> Event {
+pub fn process_input(data: &[u8; 10]) -> Event {
     if data[0] == 0x02 {
         if data[1] == 0xf0 {
             let wheel_byte = data[7];
