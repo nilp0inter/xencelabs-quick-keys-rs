@@ -79,7 +79,7 @@ fn msg_set_wheel_speed(speed: WheelSpeed) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x04, 0x01, 0x01, speed as u8])
 }
 
-// A message to set for how long the device would be awake (after losing connection?)
+// A message to set for how long the device would be awake (after losing connection)
 fn msg_set_sleep_timeout(minutes: u8) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x08, 0x01, minutes])
 }
