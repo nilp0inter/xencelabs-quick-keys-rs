@@ -8,7 +8,7 @@ edition = "2021"
 repository = "https://github.com/nilp0inter/xencelabs-quick-keys-rs"
 description = "A rust library for interfacing with the XenceLabs Quick Keys"
 license = "MIT"
-keywords = ["xencelabs", "quickkeys", "quick-keys", "hid", "api", "usb"]
+keywords = ["xencelabs", "quick-keys", "hid", "api", "usb"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
