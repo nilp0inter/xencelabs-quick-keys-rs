@@ -13,3 +13,4 @@ keywords = ["xencelabs", "quick-keys", "hid", "api", "usb"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hidapi = "2.0.2"
