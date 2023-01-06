@@ -1,7 +1,14 @@
 [package]
-name = "xencelabs-quick-keys-rs"
+name = "xencelabs-quick-keys"
 version = "0.1.0"
+authors = [
+    "Roberto Abdelkader Martínez Pérez <robertomartinezp@gmail.com>"
+]
 edition = "2021"
+repository = "https://github.com/nilp0inter/xencelabs-quick-keys-rs"
+description = "A rust library for interfacing with the XenceLabs Quick Keys"
+license = "MIT"
+keywords = ["xencelabs", "quick keys", "quick-keys", "hid", "api", "usb"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
