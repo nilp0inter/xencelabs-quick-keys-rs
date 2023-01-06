@@ -111,6 +111,7 @@ fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
     body
 }
 
+// Part of a message sequence to show a text overlay
 fn submsg_overlay_chunk(
     is_cont: bool,
     duration: u8,
@@ -137,6 +138,8 @@ fn submsg_overlay_chunk(
     body
 }
 
+// A message sequence to show a text overlay
+// TODO: consider unicode problems
 fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
     assert!(text.len() <= 32);
     let mut res = Vec::new();
