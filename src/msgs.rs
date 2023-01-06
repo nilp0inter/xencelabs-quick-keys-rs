@@ -1,3 +1,4 @@
+// Pad the rightmost part of some array with zeroes up to given length.
 fn pad_zeroes<const A: usize, const B: usize>(arr: [u8; A]) -> [u8; B] {
     assert!(B >= A);
     let mut b = [0; B];
@@ -110,7 +111,12 @@ fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
     body
 }
 
-fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool) -> [u8; 32] {
+fn submsg_overlay_chunk(
+    is_cont: bool,
+    duration: u8,
+    text: &str,
+    is_previous_to_last: bool,
+) -> [u8; 32] {
     let mut body = [0u8; 32];
     body[..7].clone_from_slice(&[
         0x02,
@@ -118,8 +124,8 @@ fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool)
         if is_cont { 0x06 } else { 0x05 },
         duration,
         0x00,
-        (if text.len() <= 8 { text.len() * 2 } else { 8 }) as u8,
-        has_more as u8,
+        (if text.len() <= 8 { text.len() * 2 } else { 16 }) as u8,
+        is_previous_to_last as u8,
     ]);
 
     let mut payload = text
@@ -142,7 +148,13 @@ fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
         .collect::<Vec<String>>()
         .iter()
         .enumerate()
-        .map(|(i, w)| (i, w, i == (text.len() / 8) - 1))
+        .map(|(i, w)| {
+            (
+                i,
+                w,
+                i == ((text.len() / 8) - if (text.len() % 8) == 0 { 2 } else { 1 }),
+            )
+        })
     {
         res.push(submsg_overlay_chunk(
             i != 0,
@@ -252,7 +264,29 @@ mod tests_msgs {
     }
 
     #[test]
-    fn it_should_match_show_overlay_text() {
+    fn it_should_match_show_overlay_text__multiple_of_eight() {
+        let result = msgs_show_overlay_text(42, "Is this real life? <=0=>");
+        assert_eq!(
+            result,
+            vec![
+                [
+                    2, 177, 5, 42, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 73, 0, 115, 0, 32, 0, 116,
+                    0, 104, 0, 105, 0, 115, 0, 32, 0
+                ],
+                [
+                    2, 177, 6, 42, 0, 16, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 114, 0, 101, 0, 97, 0, 108,
+                    0, 32, 0, 108, 0, 105, 0, 102, 0
+                ],
+                [
+                    2, 177, 6, 42, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 63, 0, 32, 0, 60,
+                    0, 61, 0, 48, 0, 61, 0, 62, 0
+                ],
+            ]
+        )
+    }
+
+    #[test]
+    fn it_should_match_show_overlay_text__non_multiple_of_eight() {
         let result = msgs_show_overlay_text(42, "Is this real life?");
         assert_eq!(
             result,
@@ -268,7 +302,7 @@ mod tests_msgs {
                 [
                     2, 177, 6, 42, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 63, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0
-                ]
+                ],
             ]
         )
     }
