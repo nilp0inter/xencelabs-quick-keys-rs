@@ -29,6 +29,10 @@ mod tests_pad_zeroes {
     }
 }
 
+//
+// OUTPUT MESSAGES
+//
+
 // A message to subscribe to key events
 fn msg_subscribe_to_key_events() -> [u8; 32] {
     pad_zeroes([0x02, 0xb0, 0x04])
@@ -112,12 +116,7 @@ fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
 }
 
 // Part of a message sequence to show a text overlay
-fn submsg_overlay_chunk(
-    is_cont: bool,
-    duration: u8,
-    text: &str,
-    has_more: bool,
-) -> [u8; 32] {
+fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool) -> [u8; 32] {
     let mut body = [0u8; 32];
     body[..7].clone_from_slice(&[
         0x02,
@@ -163,7 +162,7 @@ fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
             i != 0,
             duration,
             &chunk,
-            i>0 && has_more,
+            i > 0 && has_more,
         ))
     }
     res
@@ -172,7 +171,7 @@ fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
 // This test suite matches primarily the data obtained from the source code of the
 // node-xencelabs-quick-keys library.
 #[cfg(test)]
-mod tests_msgs {
+mod tests_output_msgs {
     use super::*;
 
     #[test]
@@ -316,10 +315,361 @@ mod tests_msgs {
         assert_eq!(
             result,
             vec![
-                [ 2, 177, 5, 2, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 105, 0, 115, 0, 99, 0, 111, 0, 44, 0, 32, 0, 100, 0 ],
-                [ 2, 177, 6, 2, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 105, 0, 115, 0, 99, 0, 111, 0, 33, 0, 0, 0, 0, 0, 0, 0 ],
+                [
+                    2, 177, 5, 2, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 68, 0, 105, 0, 115, 0, 99,
+                    0, 111, 0, 44, 0, 32, 0, 100, 0
+                ],
+                [
+                    2, 177, 6, 2, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 105, 0, 115, 0, 99, 0, 111,
+                    0, 33, 0, 0, 0, 0, 0, 0, 0
+                ],
             ]
         )
     }
+}
 
+//
+// INPUT MESSAGES
+//
+
+// Represent the direction of movement of the wheel
+#[derive(Debug, PartialEq)]
+enum WheelDirection {
+    Right,
+    Left,
+}
+
+// The state of the buttons at any given moment (true => press, false => not press)
+#[derive(Debug, PartialEq)]
+struct ButtonState {
+    button_0: bool,
+    button_1: bool,
+    button_2: bool,
+    button_3: bool,
+    button_4: bool,
+    button_5: bool,
+    button_6: bool,
+    button_7: bool,
+    button_extra: bool,
+    button_wheel: bool,
+}
+
+// Represent a state change of the device
+#[derive(Debug, PartialEq)]
+enum Event {
+    Button { state: ButtonState },
+    Wheel { direction: WheelDirection },
+    Battery { percent: u8 },
+    Unknown { data: [u8; 16] },
+}
+
+// Process an input message from the device and translates it to an Event
+// For messages that are malformed or not yet understood it returns Unknown
+fn process_input(data: &[u8; 16]) -> Event {
+    if data[0] == 0x02 {
+        if data[1] == 0xf0 {
+            let wheel_byte = data[7];
+            if wheel_byte & 0x01 > 0 {
+                Event::Wheel {
+                    direction: WheelDirection::Right,
+                }
+            } else if wheel_byte & 0x02 > 0 {
+                Event::Wheel {
+                    direction: WheelDirection::Left,
+                }
+            } else {
+                let keys1 = data[2];
+                let keys2 = data[3];
+                Event::Button {
+                    state: ButtonState {
+                        button_0: keys1 & (1 << 0) > 0,
+                        button_1: keys1 & (1 << 1) > 0,
+                        button_2: keys1 & (1 << 2) > 0,
+                        button_3: keys1 & (1 << 3) > 0,
+                        button_4: keys1 & (1 << 4) > 0,
+                        button_5: keys1 & (1 << 5) > 0,
+                        button_6: keys1 & (1 << 6) > 0,
+                        button_7: keys1 & (1 << 7) > 0,
+                        button_extra: keys2 & (1 << 0) > 0,
+                        button_wheel: keys2 & (1 << 1) > 0,
+                    },
+                }
+            }
+        } else if data[0] == 0xf2 && data[2] == 0x01 {
+            Event::Battery { percent: data[3] }
+        } else {
+            Event::Unknown { data: *data }
+        }
+    } else {
+        Event::Unknown { data: *data }
+    }
+}
+
+#[cfg(test)]
+mod tests_input_msgs {
+    use super::*;
+
+    #[test]
+    fn it_should_decode_wheel_left() {
+        let result = process_input(&pad_zeroes([2, 240, 0, 0, 0, 0, 0, 2, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Wheel {
+                direction: WheelDirection::Left
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_wheel_right() {
+        let result = process_input(&pad_zeroes([2, 240, 0, 0, 0, 0, 0, 1, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Wheel {
+                direction: WheelDirection::Right
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_no_button_press() {
+        let result = process_input(&pad_zeroes([2, 240, 0, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_wheel_button_press() {
+        let result = process_input(&pad_zeroes([2, 240, 0, 2, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: true,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_zero_press() {
+        let result = process_input(&pad_zeroes([2, 240, 1, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: true,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_one_press() {
+        let result = process_input(&pad_zeroes([2, 240, 2, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: true,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_two_press() {
+        let result = process_input(&pad_zeroes([2, 240, 4, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: true,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_three_press() {
+        let result = process_input(&pad_zeroes([2, 240, 8, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: true,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_four_press() {
+        let result = process_input(&pad_zeroes([2, 240, 16, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: true,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_five_press() {
+        let result = process_input(&pad_zeroes([2, 240, 32, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: true,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_six_press() {
+        let result = process_input(&pad_zeroes([2, 240, 64, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: true,
+                    button_7: false,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_seven_press() {
+        let result = process_input(&pad_zeroes([2, 240, 128, 0, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: true,
+                    button_extra: false,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn it_should_decode_button_extra_press() {
+        let result = process_input(&pad_zeroes([2, 240, 0, 1, 0, 0, 0, 0, 0, 0]));
+        assert_eq!(
+            result,
+            Event::Button {
+                state: ButtonState {
+                    button_0: false,
+                    button_1: false,
+                    button_2: false,
+                    button_3: false,
+                    button_4: false,
+                    button_5: false,
+                    button_6: false,
+                    button_7: false,
+                    button_extra: true,
+                    button_wheel: false,
+                }
+            }
+        )
+    }
 }
