@@ -44,7 +44,7 @@ fn msg_subscribe_to_battery() -> [u8; 32] {
 }
 
 // Possible device screen orientations
-enum ScreenOrientation {
+pub enum ScreenOrientation {
     Rotate0 = 1,
     Rotate90 = 2,
     Rotate180 = 3,
@@ -57,7 +57,7 @@ fn msg_rotate_screen(rot: ScreenOrientation) -> [u8; 32] {
 }
 
 // Possible screen brightness levels
-enum ScreenBrightness {
+pub enum ScreenBrightness {
     Off = 0,
     Low = 1,
     Medium = 2,
@@ -70,7 +70,7 @@ fn msg_set_screen_brightness(level: ScreenBrightness) -> [u8; 32] {
 }
 
 // Possible wheel speed settings
-enum WheelSpeed {
+pub enum WheelSpeed {
     Slowest = 5,
     Slower = 4,
     Normal = 3,
@@ -266,7 +266,7 @@ mod tests_output_msgs {
     }
 
     #[test]
-    fn it_should_match_show_overlay_text__multiple_of_eight() {
+    fn it_should_match_show_overlay_text_multiple_of_eight() {
         let result = msgs_show_overlay_text(42, "Is this real life? <=0=>");
         assert_eq!(
             result,
@@ -288,7 +288,7 @@ mod tests_output_msgs {
     }
 
     #[test]
-    fn it_should_match_show_overlay_text__non_multiple_of_eight() {
+    fn it_should_match_show_overlay_text_non_multiple_of_eight() {
         let result = msgs_show_overlay_text(42, "Is this real life?");
         assert_eq!(
             result,
@@ -310,7 +310,7 @@ mod tests_output_msgs {
     }
 
     #[test]
-    fn it_should_match_show_overlay_text__broken() {
+    fn it_should_match_show_overlay_text_broken() {
         let result = msgs_show_overlay_text(2, "Disco, disco!");
         assert_eq!(
             result,
@@ -334,14 +334,14 @@ mod tests_output_msgs {
 
 // Represent the direction of movement of the wheel
 #[derive(Debug, PartialEq)]
-enum WheelDirection {
+pub enum WheelDirection {
     Right,
     Left,
 }
 
 // The state of the buttons at any given moment (true => press, false => not press)
 #[derive(Debug, PartialEq)]
-struct ButtonState {
+pub struct ButtonState {
     button_0: bool,
     button_1: bool,
     button_2: bool,
@@ -356,7 +356,7 @@ struct ButtonState {
 
 // Represent a state change of the device
 #[derive(Debug, PartialEq)]
-enum Event {
+pub enum Event {
     Button { state: ButtonState },
     Wheel { direction: WheelDirection },
     Battery { percent: u8 },
