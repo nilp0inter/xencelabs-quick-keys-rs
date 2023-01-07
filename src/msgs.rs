@@ -395,7 +395,7 @@ pub fn process_input(data: &[u8; 10]) -> Event {
                     },
                 }
             }
-        } else if data[0] == 0xf2 && data[2] == 0x01 {
+        } else if data[1] == 0xf2 && data[2] == 0x01 {
             Event::Battery { percent: data[3] }
         } else {
             Event::Unknown { data: *data }
