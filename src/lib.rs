@@ -38,7 +38,7 @@ impl QKDevice {
             })
             .map(|dev| match dev.open_device(&hidapi) {
                 Ok(d) => Ok(QKDevice { device: d }),
-                Err(e) => Err(QKError::QKConnectionError {}),
+                Err(_) => Err(QKError::QKConnectionError {}),
             })
             .or_else(|| Some(Err(QKError::QKDeviceNotFound {})))
             .unwrap()?;
@@ -90,7 +90,10 @@ impl QKDevice {
     // Input Api
     //
     pub fn set_blocking_mode(&self, blocking: bool) -> QKResult<()> {
-        Err(QKError::QKApiError {})
+        match self.device.set_blocking_mode(blocking) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(QKError::QKHidError { }),
+        }
     }
     pub fn read(&self) -> QKResult<Event> {
         let mut buf = [0u8; 10];
@@ -108,8 +111,6 @@ impl QKDevice {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn it_works() {
         assert_eq!(true, true);

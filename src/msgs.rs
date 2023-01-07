@@ -13,7 +13,7 @@ mod tests_pad_zeroes {
     #[test]
     #[should_panic]
     fn it_panics_on_incorrect_size() {
-        let result: [u8; 2] = pad_zeroes([1, 2, 3]);
+        let _result: [u8; 2] = pad_zeroes([1, 2, 3]);
     }
 
     #[test]

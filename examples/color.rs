@@ -43,7 +43,6 @@ fn run(api: HidApi) -> QKResult<()> {
                         Event::Button { state: ButtonState { .. } } => { println!("release"); Ok(()) },
                         Event::Unknown { data: d } => { println!("unknown! {:?}", d); Ok(()) },
                         Event::Battery { percent: p } => { println!("battery level: {:?}", p); Ok(()) },
-                        _ => { println!("other!"); Ok(()) },
                     },
                     Err(e) => Err(e),
                 }?;
