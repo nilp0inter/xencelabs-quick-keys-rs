@@ -12,7 +12,7 @@ pub use msgs::*;
 #[derive(Debug, PartialEq)]
 pub enum ConnectionMode {
     Wired,
-    Wireless,
+    Wireless,  // NOTE: Not implemented yet
     Auto,
 }
 
@@ -106,13 +106,5 @@ impl QKDevice {
             Ok(_) => Ok(process_input(&buf)),
             Err(_) => Err(QKError::QKHidError { }),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(true, true);
     }
 }
