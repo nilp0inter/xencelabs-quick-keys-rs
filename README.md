@@ -6,6 +6,19 @@
 Linux:
   - libudev
 
+## Roadmap
+
+Attention! This library is a work in progress.
+
+- [x] Read button status
+- [x] Read wheel status
+- [x] Change led ring color
+- [x] Change button label
+- [x] Show a text overlay
+- [x] Read battery information
+- [x] Wired connection
+- [ ] Wireless connection
+
 ## Acknowledgements
 
 This library would not be possible without the previous work done by
