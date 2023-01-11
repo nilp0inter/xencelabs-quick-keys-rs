@@ -7,7 +7,8 @@ mod error;
 mod msgs;
 
 pub use error::QKError;
-pub use msgs::*;
+pub use msgs::{ButtonState, Event, ScreenOrientation, WheelDirection, ScreenBrightness, WheelSpeed};
+use msgs::*;
 
 #[derive(Debug, PartialEq)]
 pub enum ConnectionMode {
@@ -23,9 +24,9 @@ pub struct QKDevice {
     device: HidDevice,
 }
 
-// Use to send and receive commands from a particular Quick Keys device
+/// Use to send and receive commands from a particular Quick Keys device
 impl QKDevice {
-    // Search and connect to a Quick Keys device using a HidApi instance
+    /// Search and connect to a Quick Keys device using a HidApi instance
     pub fn open(hidapi: HidApi, mode: ConnectionMode) -> QKResult<Self> {
         let this = hidapi
             .device_list()

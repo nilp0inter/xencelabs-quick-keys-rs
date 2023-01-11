@@ -1,4 +1,4 @@
-// Pad the rightmost part of some array with zeroes up to given length.
+/// Pad the rightmost part of some array with zeroes up to given length.
 fn pad_zeroes<const A: usize, const B: usize>(arr: [u8; A]) -> [u8; B] {
     assert!(B >= A);
     let mut b = [0; B];
@@ -33,17 +33,17 @@ mod tests_pad_zeroes {
 // OUTPUT MESSAGES
 //
 
-// A message to subscribe to key events
+/// A message to subscribe to key events
 pub fn msg_subscribe_to_key_events() -> [u8; 32] {
     pad_zeroes([0x02, 0xb0, 0x04])
 }
 
-// A message to subscribe to battery changes
+/// A message to subscribe to battery changes
 pub fn msg_subscribe_to_battery() -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x10])
 }
 
-// Possible device screen orientations
+/// Possible device screen orientations
 pub enum ScreenOrientation {
     Rotate0 = 1,
     Rotate90 = 2,
@@ -51,12 +51,12 @@ pub enum ScreenOrientation {
     Rotate270 = 4,
 }
 
-// A message to rotate the screen
+/// A message to rotate the screen
 pub fn msg_rotate_screen(rot: ScreenOrientation) -> [u8; 32] {
     pad_zeroes([0x02, 0xb1, rot as u8])
 }
 
-// Possible screen brightness levels
+/// Possible screen brightness levels
 pub enum ScreenBrightness {
     Off = 0,
     Low = 1,
@@ -64,12 +64,12 @@ pub enum ScreenBrightness {
     Full = 3,
 }
 
-// A message to change the screen brightness level
+/// A message to change the screen brightness level
 pub fn msg_set_screen_brightness(level: ScreenBrightness) -> [u8; 32] {
     pad_zeroes([0x02, 0xb1, 0x0a, 0x01, level as u8])
 }
 
-// Possible wheel speed settings
+/// Possible wheel speed settings
 pub enum WheelSpeed {
     Slowest = 5,
     Slower = 4,
@@ -78,22 +78,22 @@ pub enum WheelSpeed {
     Fastest = 1,
 }
 
-// A message to change the wheel speed
+/// A message to change the wheel speed
 pub fn msg_set_wheel_speed(speed: WheelSpeed) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x04, 0x01, 0x01, speed as u8])
 }
 
-// A message to set for how long the device would be awake (after losing connection)
+/// A message to set for how long the device would be awake (after losing connection)
 pub fn msg_set_sleep_timeout(minutes: u8) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x08, 0x01, minutes])
 }
 
-// A message to set the wheel outer ring led color
+/// A message to set the wheel outer ring led color
 pub fn msg_set_wheel_color(r: u8, g: u8, b: u8) -> [u8; 32] {
     pad_zeroes([0x02, 0xb4, 0x01, 0x01, 0x00, 0x00, r, g, b])
 }
 
-// A message to set the text on a given key
+/// A message to set the text on a given key
 // TODO: investigate how to set text longer than 8 chars
 pub fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
     let mut body = [0u8; 32];
@@ -115,7 +115,7 @@ pub fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
     body
 }
 
-// Part of a message sequence to show a text overlay
+/// Part of a message sequence to show a text overlay
 fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool) -> [u8; 32] {
     let mut body = [0u8; 32];
     body[..7].clone_from_slice(&[
@@ -137,7 +137,7 @@ fn submsg_overlay_chunk(is_cont: bool, duration: u8, text: &str, has_more: bool)
     body
 }
 
-// A message sequence to show a text overlay
+/// A message sequence to show a text overlay
 // TODO: consider unicode problems
 pub fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
     assert!(text.len() <= 32);
@@ -168,8 +168,8 @@ pub fn msgs_show_overlay_text(duration: u8, text: &str) -> Vec<[u8; 32]> {
     res
 }
 
-// This test suite matches primarily the data obtained from the source code of the
-// node-xencelabs-quick-keys library.
+/// This test suite matches primarily the data obtained from the source code of the
+/// node-xencelabs-quick-keys library.
 #[cfg(test)]
 mod tests_output_msgs {
     use super::*;
@@ -346,14 +346,14 @@ mod tests_output_msgs {
 // INPUT MESSAGES
 //
 
-// Represent the direction of movement of the wheel
+/// Represent the direction of movement of the wheel
 #[derive(Debug, PartialEq)]
 pub enum WheelDirection {
     Right,
     Left,
 }
 
-// The state of the buttons at any given moment (true => press, false => not press)
+/// The state of the buttons at any given moment (true => press, false => not press)
 #[derive(Debug, PartialEq)]
 pub struct ButtonState {
     pub button_0: bool,
@@ -368,7 +368,7 @@ pub struct ButtonState {
     pub button_wheel: bool,
 }
 
-// Represent a state change of the device
+/// Represent a state change of the device
 #[derive(Debug, PartialEq)]
 pub enum Event {
     Button { state: ButtonState },
@@ -377,8 +377,8 @@ pub enum Event {
     Unknown { data: [u8; 10] },
 }
 
-// Process an input message from the device and translates it to an Event
-// For messages that are malformed or not yet understood it returns Unknown
+/// Process an input message from the device and translates it to an Event
+/// For messages that are malformed or not yet understood it returns Unknown
 pub fn process_input(data: &[u8; 10]) -> Event {
     if data[0] == 0x02 {
         if data[1] == 0xf0 {
