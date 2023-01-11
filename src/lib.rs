@@ -10,6 +10,7 @@ pub use error::QKError;
 pub use msgs::{ButtonState, Event, ScreenOrientation, WheelDirection, ScreenBrightness, WheelSpeed};
 use msgs::*;
 
+/// Connection method (cable, wireless, or automatic...)
 #[derive(Debug, PartialEq)]
 pub enum ConnectionMode {
     Wired,
@@ -20,11 +21,11 @@ pub enum ConnectionMode {
 pub type QKResult<T> = Result<T, QKError>;
 
 
+/// Use to send and receive commands from a particular Quick Keys device.
 pub struct QKDevice {
     device: HidDevice,
 }
 
-/// Use to send and receive commands from a particular Quick Keys device.
 impl QKDevice {
     /// Search and connect to a Quick Keys device using a HidApi instance.
     pub fn open(hidapi: HidApi, mode: ConnectionMode) -> QKResult<Self> {
