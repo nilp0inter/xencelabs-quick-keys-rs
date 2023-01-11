@@ -43,8 +43,8 @@ impl QKDevice {
             })
             .or_else(|| Some(Err(QKError::QKDeviceNotFound {})))
             .unwrap()?;
-        self.device.write(&msg_subscribe_to_key_events())?;
-        self.device.write(&msg_subscribe_to_battery())?;
+        this.device.write(&msg_subscribe_to_key_events())?;
+        this.device.write(&msg_subscribe_to_battery())?;
         Ok(this)
     }
 
