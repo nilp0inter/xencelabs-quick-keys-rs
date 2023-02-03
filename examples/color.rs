@@ -7,6 +7,10 @@ use hidapi::HidApi;
 
 use xencelabs_quick_keys::*;
 
+/// This function is the main entry point for the example. It opens a connection to the device,
+/// and then sets the screen orientation, brightness, wheel speed, sleep timeout, ring color,
+/// and key text. It then enters a loop, reading events from the device and setting the ring
+/// color based on the wheel and buttons.
 fn run(api: HidApi) -> QKResult<()> {
     match QKDevice::open(api, ConnectionMode::Auto) {
         Ok(dev) => {
