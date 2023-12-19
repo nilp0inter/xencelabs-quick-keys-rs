@@ -40,9 +40,9 @@ impl QKDevice {
             })
             .map(|dev| match dev.open_device(&hidapi) {
                 Ok(d) => Ok(QKDevice { device: d }),
-                Err(_) => Err(QKError::QKConnectionError {}),
+                Err(_) => Err(QKError::QKConnectionError),
             })
-            .or_else(|| Some(Err(QKError::QKDeviceNotFound {})))
+            .or_else(|| Some(Err(QKError::QKDeviceNotFound)))
             .unwrap()?;
         this.device.write(&msg_subscribe_to_key_events())?;
         this.device.write(&msg_subscribe_to_battery())?;
@@ -105,10 +105,7 @@ impl QKDevice {
 
     /// Set the blocking mode (see hidapi for details).
     pub fn set_blocking_mode(&self, blocking: bool) -> QKResult<()> {
-        match self.device.set_blocking_mode(blocking) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(QKError::QKHidError { }),
-        }
+        self.device.set_blocking_mode(blocking).map_err(QKError::QKHidError)
     }
 
     /// Read the next Event.  By default in blocks (unless set_blocking_mode(false)).
@@ -124,7 +121,7 @@ impl QKDevice {
         let mut buf = [0u8; 10];
         match self.device.read_timeout(&mut buf[..], timeout) {
             Ok(_) => Ok(process_input(&buf)),
-            Err(_) => Err(QKError::QKHidError { }),
+            Err(e) => Err(QKError::QKHidError(e)),
         }
     }
 }

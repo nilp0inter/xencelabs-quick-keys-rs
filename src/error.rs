@@ -1,18 +1,14 @@
 extern crate hidapi;
 
 use hidapi::HidError;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum QKError {
-    QKApiError {},
-    QKDeviceNotFound {},
-    QKConnectionError {},
-    QKHidError {},
-    QKNoEvents {},
-}
-
-impl From<HidError> for QKError {
-    fn from(_: HidError) -> Self {
-        QKError::QKHidError { }
-    }
+    #[error("Quick Keys device not found")]
+    QKDeviceNotFound,
+    #[error("Quick Keys connection error")]
+    QKConnectionError,
+    #[error("Quick Keys HID error: {0}")]
+    QKHidError(#[from] HidError),
 }
