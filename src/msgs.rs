@@ -347,14 +347,14 @@ mod tests_output_msgs {
 //
 
 /// Represent the direction of movement of the wheel
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum WheelDirection {
     Right,
     Left,
 }
 
 /// The state of the buttons at any given moment (true => press, false => not press)
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ButtonState {
     pub button_0: bool,
     pub button_1: bool,
@@ -369,7 +369,7 @@ pub struct ButtonState {
 }
 
 /// Represent a state change of the device
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Event {
     Button { state: ButtonState },
     Wheel { direction: WheelDirection },
