@@ -44,7 +44,10 @@ pub fn msg_subscribe_to_battery() -> [u8; 32] {
 }
 
 /// Possible device screen orientations
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ScreenOrientation {
+    #[default]
     Rotate0 = 1,
     Rotate90 = 2,
     Rotate180 = 3,
@@ -57,9 +60,12 @@ pub fn msg_rotate_screen(rot: ScreenOrientation) -> [u8; 32] {
 }
 
 /// Possible screen brightness levels
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ScreenBrightness {
     Off = 0,
     Low = 1,
+    #[default]
     Medium = 2,
     Full = 3,
 }
@@ -70,9 +76,12 @@ pub fn msg_set_screen_brightness(level: ScreenBrightness) -> [u8; 32] {
 }
 
 /// Possible wheel speed settings
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum WheelSpeed {
     Slowest = 5,
     Slower = 4,
+    #[default]
     Normal = 3,
     Faster = 2,
     Fastest = 1,
@@ -104,6 +113,27 @@ pub fn msg_set_key_text(key: u8, text: &str) -> [u8; 32] {
         key + 1,
         0x00,
         (if text.len() <= 8 { text.len() * 2 } else { 16 }) as u8,
+    ]);
+
+    let mut payload = text
+        .encode_utf16()
+        .flat_map(|c| c.to_le_bytes())
+        .collect::<Vec<u8>>();
+    payload.resize(16, 0);
+    body[16..].clone_from_slice(&payload);
+    body
+}
+
+fn create_overlay_chunk(special_byte: u8, duration: u8, text: &str, has_more: bool) -> [u8; 32] {
+    let mut body = [0u8; 32];
+    body[..7].clone_from_slice(&[
+        0x02,
+        0xb1,
+        special_byte,
+        duration,
+        0x00,
+        text.len() as u8 * 2,
+        has_more as u8,
     ]);
 
     let mut payload = text
@@ -347,14 +377,17 @@ mod tests_output_msgs {
 //
 
 /// Represent the direction of movement of the wheel
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum WheelDirection {
+    #[default]
     Right,
     Left,
 }
 
 /// The state of the buttons at any given moment (true => press, false => not press)
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ButtonState {
     pub button_0: bool,
     pub button_1: bool,
@@ -369,7 +402,8 @@ pub struct ButtonState {
 }
 
 /// Represent a state change of the device
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Event {
     Button { state: ButtonState },
     Wheel { direction: WheelDirection },

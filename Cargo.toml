@@ -14,4 +14,8 @@ keywords = ["xencelabs", "quick-keys", "hid", "api", "usb"]
 
 [dependencies]
 hidapi = "2.0.2"
+serde = { version = "1.0.193", optional = true }
 thiserror = "1.0.51"
+
+[features]
+serde = ["dep:serde"]

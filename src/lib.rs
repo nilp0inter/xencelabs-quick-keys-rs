@@ -11,8 +11,10 @@ pub use msgs::{ButtonState, Event, ScreenOrientation, WheelDirection, ScreenBrig
 use msgs::*;
 
 /// Connection method (cable, wireless, or automatic...)
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ConnectionMode {
+    #[default]
     Wired,
     Wireless,  // NOTE: Not implemented yet
     Auto,
